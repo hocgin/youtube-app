@@ -40,11 +40,13 @@ jobs:
       - run: npm run package
 
       - run: |
-          7z a -tzip win32-arm64.zip  out/win32-arm64
+          $DIR_NAME="${{ env.APP_NAME }}-win32-arm64"
+          7z a -tzip win32-arm64.zip  out/$DIR_NAME
         env:
           OS: ${{ matrix.os }}
       - run: |
-          7z a -tzip win32-x64.zip  out/win32-x64
+          $DIR_NAME="${{ env.APP_NAME }}-win32-x64"
+          7z a -tzip win32-x64.zip  out/$DIR_NAME
         env:
           OS: ${{ matrix.os }}
 

@@ -48,11 +48,13 @@ jobs:
       - run: npm run package
 
       - run: |
-          zip -r $OS-arm64.zip out/*-arm64
+          DIR_NAME="${{ env.APP_NAME }}-*-arm64"
+          zip -r $OS-arm64.zip out/$DIR_NAME
         env:
           OS: ${{ matrix.os }}
       - run: |
-          zip -r $OS-x64.zip   out/*-x64
+          DIR_NAME="${{ env.APP_NAME }}-*-x64"
+          zip -r $OS-x64.zip   out/$DIR_NAME
         env:
           OS: ${{ matrix.os }}
 
