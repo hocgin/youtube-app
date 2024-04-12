@@ -1,0 +1,74 @@
+name: Deploy::App::Win
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+env:
+  APP_NAME: Kimi
+
+jobs:
+  deploy:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ windows-latest ]
+    permissions:
+      contents: write
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - id: prep
+        uses: hocgin/action-env@main
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Rename Version
+        run: |
+          echo "${{ steps.prep.outputs.version_number }}"
+          (Get-Content package.json) -replace "(?<=^|(?<=\W))9.9.9(?!\w)", "${{ steps.prep.outputs.version_number }}" | Set-Content package.json
+          get-content  package.json -encoding utf8
+
+      - run: npm install
+      - run: npm run package
+
+      - run: |
+          7z a -tzip win32-arm64.zip  out/win32-arm64
+        env:
+          OS: ${{ matrix.os }}
+      - run: |
+          7z a -tzip win32-x64.zip  out/win32-x64
+        env:
+          OS: ${{ matrix.os }}
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+
+      - name: Upload Release darwin-arm64.zip Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: win32-arm64.zip
+          asset_name: ${{ env.APP_NAME }}-win32-arm64.zip
+          asset_content_type: application/zip
+
+      - name: Upload Release darwin-x64.zip Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: win32-x64.zip
+          asset_name: ${{ env.APP_NAME }}-win32-x64.zip
+          asset_content_type: application/zip

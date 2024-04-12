@@ -1,0 +1,82 @@
+name: Deploy::App
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+env:
+  APP_NAME: Kimi
+
+jobs:
+  deploy:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-11 ]
+    permissions:
+      contents: write
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - id: prep
+        uses: hocgin/action-env@main
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Rename Version
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sed -i "s/\"9.9.9\"/\"${VERSION}\"/" package.json
+        env:
+          VERSION: ${{ steps.prep.outputs.version_number }}
+
+      - name: Rename Version
+        if: matrix.os == 'macos-11'
+        run: |
+          sed -i '' "s/\"9.9.9\"/\"${VERSION}\"/" package.json
+        env:
+          VERSION: ${{ steps.prep.outputs.version_number }}
+
+      - run: npm install
+      - run: npm run package
+
+      - run: |
+          zip -r $OS-arm64.zip out/*-arm64
+        env:
+          OS: ${{ matrix.os }}
+      - run: |
+          zip -r $OS-x64.zip   out/*-x64
+        env:
+          OS: ${{ matrix.os }}
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+
+      - name: Upload Release darwin-arm64.zip Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ matrix.os }}-arm64.zip
+          asset_name: ${{ env.APP_NAME }}-${{ matrix.os }}-arm64.zip
+          asset_content_type: application/zip
+
+      - name: Upload Release darwin-x64.zip Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ matrix.os }}-x64.zip
+          asset_name: ${{ env.APP_NAME }}-${{ matrix.os }}-x64.zip
+          asset_content_type: application/zip
