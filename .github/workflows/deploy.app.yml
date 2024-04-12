@@ -6,7 +6,7 @@ on:
     tags:
       - 'v*'
 env:
-  APP_NAME: Kimi
+  APP_NAME: YouTube
 
 jobs:
   deploy:

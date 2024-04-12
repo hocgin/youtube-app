@@ -1,6 +1,6 @@
 {
-  "name": "menubar-starter",
-  "productName": "menubar-starter",
+  "name": "youtube-starter",
+  "productName": "youtube-starter",
   "version": "9.9.9",
   "description": "Menubar app",
   "main": "index.js",
@@ -21,8 +21,9 @@
   "license": "MIT",
   "dependencies": {
     "electron-context-menu": "^3.6.0",
-    "menubar": "^9.2.3",
     "electron-google-analytics4": "^1.2.0",
+    "electron-store": "^8.2.0",
+    "menubar": "^9.2.3",
     "update-electron-app": "^2.0.1"
   },
   "devDependencies": {

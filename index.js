@@ -3,7 +3,8 @@
 
 const {menubar} = require("menubar");
 const Analytics = require('electron-google-analytics4').default;
-const analytics = new Analytics('G-XX', 'XX_XXX');
+let storage = require('./storage.js');
+const analytics = new Analytics('G-G4VWWT4ZQ9', '6d0lNe3kTfOTe8GFspz1Rg');
 analytics.setParams({"engagement_time_msec": 1});
 
 const path = require("path");
@@ -25,9 +26,11 @@ app.on("ready", () => {
       transparent: true,
       webPreferences: {
         webviewTag: true,
+        preload: path.join(__dirname, "preload.js"), // Use of preload.jsc
+        nodeIntegration: true,
         // nativeWindowOpen: true,
       },
-      width: 450,
+      width: 650,
       height: 550,
     }, tray, showOnAllWorkspaces: true, preloadWindow: true, showDockIcon: false, icon: image,
   });
@@ -42,8 +45,34 @@ app.on("ready", () => {
       app.dock.hide();
     }
 
+
+    //
+    let alwaysOnTop = storage.getConfig()?.alwaysOnTop ?? false;
+    let mainWindow = mb.window;
+    mainWindow.setAlwaysOnTop(alwaysOnTop);
+
     const contextMenuTemplate = [// add links to github repo and vince's twitter
       {
+        label: 'Skip Video Ads', type: 'checkbox', checked: storage.getConfig()?.skipAds,
+        click: (menuItem, browserWindow, event) => {
+          let newChecked = menuItem.checked;
+          contextMenuTemplate[0].checked = newChecked;
+          storage.setConfig({skipAds: newChecked});
+          let mainWindow = mb.window;
+          mainWindow.webContents.send('update-config');
+          mb.tray.closeContextMenu();
+        }
+      }, {
+        label: 'Always On Top', type: 'checkbox', checked: alwaysOnTop,
+        click: (menuItem, browserWindow, event) => {
+          let newChecked = menuItem.checked;
+          contextMenuTemplate[1].checked = newChecked;
+          storage.setConfig({alwaysOnTop: newChecked});
+          let mainWindow = mb.window;
+          mainWindow.setAlwaysOnTop(newChecked);
+          mb.tray.closeContextMenu();
+        }
+      }, {
         label: "Quit", accelerator: "Command+Q", click: () => {
           app.quit();
         },
@@ -53,13 +82,13 @@ app.on("ready", () => {
         },
       }, {
         label: "Open in browser", click: () => {
-          shell.openExternal("https://logspot.hocgin.top/");
+          shell.openExternal("https://www.youtube.com/");
         },
       }, {
         type: "separator",
       }, {
         label: "View on GitHub", click: () => {
-          shell.openExternal("https://github.com/hocgin");
+          shell.openExternal("https://github.com/hocgin/youtube-app");
         },
       }, {
         label: "Author on Twitter", click: () => {

@@ -1,10 +1,10 @@
 const {parsed} = require("dotenv").config();
 module.exports = {
   packagerConfig: {
-    name: "Menubar",
-    executableName: "Menubar",
+    name: "YouTube",
+    executableName: "YouTube",
     icon: "images/icon",
-    appBundleId: "com.hocgin.app",
+    appBundleId: "com.hocgin.youtube-app",
     extendInfo: {
       LSUIElement: "true",
     },
@@ -27,7 +27,7 @@ module.exports = {
     config: {
       repository: {
         owner: "hocgin",
-        name: "menubar-starter",
+        name: "youtube-app",
       },
       prerelease: true,
     },

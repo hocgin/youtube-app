@@ -1,52 +1,52 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <title>Menubar App</title>
-  <link rel="stylesheet" href="index.css"/>
+  <link rel="stylesheet" href="index.css" />
 </head>
 <body class="myarrow">
 <div class="page darwin">
-  <webview id="webview" src="https://kimi.moonshot.cn/" autosize="on"></webview>
+  <webview id="webview" src="https://www.youtube.com/" autosize="on" nodeintegration></webview>
 </div>
 <script>
   const webview = document.getElementById('webview');
+  let configKey = 'MenuBarConfig';
+  let onUpdateConfig = () => {
+    let config = window.electronAPI.getConfig();
+    let configStr = JSON.stringify(config);
+    webview.executeJavaScript(`localStorage.setItem('${configKey}', '${configStr}')`);
+  };
+  window.electronAPI.onUpdateConfig(onUpdateConfig);
+
   webview.addEventListener('dom-ready', function () {
+    onUpdateConfig();
 
     // hide message below text input, sidebar, suggestions on new chat
     webview.insertCSS(`
-        .text-xs.text-center {
-          opacity: 0;
-          height: 0;
-          margin-bottom: -10px;
-        }
+    `)
 
-        .sticky,
-        .pointer-events-auto.flex.border-orange-500,
-        [class*="shared__Capabilities"] {
-          display: none !important;
-        }
-
-        [class*="shared__Wrapper"] {
-          align-items: center;
-          justify-content: center;
-          text-align: center;
-          margin-top: 15vh;
-        }
-
-        [class*="shared__Wrapper"] h3 {
-          margin-top: -40px;
-          font-size: 20px;
-        }
-
-        [class*="download_"] {
-          display: none;
-        }
-      `)
-
+    // SKip Ads
     const element = webview.executeJavaScript(`
-        document.querySelector("[class*='shared__Wrapper']").innerHTML += "<h3>Start by asking anything.</h3>"
-      `);
+          var observer = new MutationObserver((mutations, observer) => {
+              for (let mutation of mutations) {
+                let configStr = localStorage.getItem('${configKey}');
+                let config = JSON.parse(configStr);
+                if (config.skipAds) {
+                 if (document.querySelector('.ytp-ad-skip-button.ytp-button')) {
+                     document.querySelector('.ytp-ad-skip-button.ytp-button').click();
+                 }
+                 if (document.querySelector('.ytp-ad-skip-button-modern.ytp-button')) {
+                     document.querySelector('.ytp-ad-skip-button-modern.ytp-button').click();
+                 }
+                }
+              }
+          });
+          observer.observe(document, {
+              subtree: true,
+              attributes: true
+          });
+    `);
   });
 
 </script>
